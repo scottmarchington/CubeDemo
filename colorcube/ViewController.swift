@@ -7,72 +7,66 @@
 
 import UIKit
 
-class ViewController: UIViewController {
-    enum CubeFace: CaseIterable {
-        enum Constants {
-            static let edgeLength: CGFloat = 100
-            static let hasText: Bool = true
-        }
-        
-        case front
-        case back
-        case left
-        case right
-        case top
-        case bottom
-        
-        var edgeLength: CGFloat { Constants.edgeLength }
-        
-        var size: CGSize { CGSize(width: edgeLength, height: edgeLength) }
-        
-        var color: UIColor {
-            switch self {
-            case .front:
-                return .yellow
-            case .back:
-                return .purple
-            case .left:
-                return .blue
-            case .right:
-                return .orange
-            case .top:
-                return .red
-            case .bottom:
-                return .green
-            }
-        }
-        
-        var text: String? {
-            guard Constants.hasText else { return nil }
-            switch self {
-            case .front: return "1"
-            case .back: return "6"
-            case .left: return "2"
-            case .right: return "5"
-            case .top: return "3"
-            case .bottom: return "4"
-            }
+/// Model for our cube
+enum CubeFace: CaseIterable {
+    enum Constants {
+        static let edgeLength: CGFloat = 100
+        static let hasText: Bool = true
+    }
+    
+    case front
+    case back
+    case left
+    case right
+    case top
+    case bottom
+    
+    var edgeLength: CGFloat { Constants.edgeLength }
+    
+    var size: CGSize { CGSize(width: edgeLength, height: edgeLength) }
+    
+    var color: UIColor {
+        switch self {
+        case .front:
+            return .yellow
+        case .back:
+            return .purple
+        case .left:
+            return .blue
+        case .right:
+            return .orange
+        case .top:
+            return .red
+        case .bottom:
+            return .green
         }
     }
     
+    var text: String? {
+        guard Constants.hasText else { return nil }
+        switch self {
+        case .front: return "1"
+        case .back: return "6"
+        case .left: return "2"
+        case .right: return "5"
+        case .top: return "3"
+        case .bottom: return "4"
+        }
+    }
+}
+
+class ViewController: UIViewController {
     var cubeLayer: CATransformLayer?
+    var pinchGestureRecognizer: UIPinchGestureRecognizer?
     var panGestureRecognizer: UIPanGestureRecognizer?
     var panStartPoint: CGPoint = .zero
     var initialTransform: CATransform3D = .init()
     
-    var pinchGestureRecognizer: UIPinchGestureRecognizer?
-
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         
-        let cubeLayer = makeCubeLayer()
-        self.cubeLayer = cubeLayer
-        
-        cubeLayer.position = CGPoint(x: view.bounds.midX, y: view.bounds.midY)
-        
-        view.layer.addSublayer(cubeLayer)
-        
+        setupCubeLayer()
         setupGestureRecognizers()
     }
 }
@@ -128,26 +122,18 @@ private extension ViewController {
     }
 }
 
-// MARK: - Cube Animation
+// MARK: - Cube Setup
 
 private extension ViewController {
-    func infinitelyRotateCube() {
-        guard let cubeLayer = cubeLayer else { return }
+    func setupCubeLayer() {
+        let cubeLayer = makeCubeLayer()
+        self.cubeLayer = cubeLayer
         
-        let anim = CABasicAnimation(keyPath: "transform")
-        anim.fromValue = cubeLayer.transform
-        anim.toValue = CATransform3DMakeRotation(CGFloat.pi, 1, 1, 1)
-        anim.duration = 2
-        anim.isCumulative = true
-        anim.repeatCount = .greatestFiniteMagnitude
+        cubeLayer.position = CGPoint(x: view.bounds.midX, y: view.bounds.midY)
         
-        cubeLayer.add(anim, forKey: "transform")
+        view.layer.addSublayer(cubeLayer)
     }
-}
 
-// MARK: - Cube Construction
-
-private extension ViewController {
     func makeCubeLayer() -> CATransformLayer {
         let faceLayers =
             CubeFace.allCases.map { face in
@@ -205,6 +191,9 @@ private extension ViewController {
     }
 }
 
+// MARK: - Helper Classes
+
+/// CATextLayer doesn't support vertical centering and there's no property that allows you to change that.  This class vertically centers its text.
 private class VerticallyCenteringTextLayer: CATextLayer {
     override open func draw(in ctx: CGContext) {
         let height = self.bounds.height
@@ -218,4 +207,3 @@ private class VerticallyCenteringTextLayer: CATextLayer {
         ctx.restoreGState()
     }
 }
-
